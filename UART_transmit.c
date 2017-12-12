@@ -6,10 +6,11 @@
  */ 
 
 #include <avr/io.h>
+#define F_CPU 14745600UL //Clock speed - to be set seeing value of crystal
 #include <util/delay.h>
 
 #define baud 9600
-#define F_CPU 14745600UL //Clock speed - to be set seeing value of crystal
+
 #define UBRR ( F_CPU/16*baud - 1 )
 
 void uart_init ()
