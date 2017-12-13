@@ -1,0 +1,72 @@
+#include <avr/io.h>
+#define F_CPU 14745600UL //Clock speed - to be set seeing value of crystal
+#include <util/delay.h>
+
+#define baud 9600
+
+#define UBRR ( F_CPU/16*baud - 1 )
+
+void uart_init ()
+{
+	UBRRH = (unsigned char)(95>>8); //shifts the register right by 8 bits
+	UBRRL = (unsigned char) 95;
+	UCSRB = (1<<RXEN)|(1<<TXEN);            //Enable receiver and transmitter  
+	// Set frame format: 8data, 2stop bit 
+	UCSRC = (1<<URSEL)|(3<<UCSZ0); 
+	  
+}
+
+void uart_transmit(unsigned char data)
+{
+	while (!( UCSRA & (1<<UDRE)));
+	// UCSRA & (1<<UDRE) gives current value. UDRE = zero - indicates that buffer is empty 
+	UDR = data; //data is now in buffer
+}
+
+unsigned char uart_receive( void )
+{
+	while (!(UCSRA & (1<<RXC))); 
+	// RXC = 0 - indicates data is being received and stops program as long as data is being received 
+	return UDR; //return data received in buffer
+}
+void SPI_MasterInit(void)
+{
+	// Set MOSI and SCK output, all others input 
+	DDRB = 0b10110000;
+	// Enable SPI, Master, set clock rate fck/16 
+	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
+}
+
+void SPI_MasterTransmit(unsigned char cData)
+{
+	
+	// Start transmission 
+	SPDR = cData;
+	// Wait for transmission complete 
+	while(!(SPSR & (1<<SPIF)))
+	;
+}
+unsigned char SPI_SlaveReceive(void)
+{
+	// Wait for reception complete
+	while(!(SPSR & (1<<SPIF)))
+	;
+	// Return Data Register
+	return SPDR;
+}
+
+int main(){
+	uart_init ();
+	SPI_MasterInit();
+	unsigned char a;
+	while(1)
+{
+		SPI_MasterTransmit('a');
+		uart_transmit('a');
+		a = SPI_SlaveReceive();
+		uart_transmit('b');
+		uart_transmit(a);
+		uart_transmit('c');
+		_delay_ms(500);
+	}
+}
