@@ -6,22 +6,7 @@
 
 #define UBRR ( F_CPU/16*baud - 1 )
 
-void uart_init ()
-{
-	UBRRH = (unsigned char)(95>>8); //shifts the register right by 8 bits
-	UBRRL = (unsigned char) 95;
-	UCSRB = (1<<RXEN)|(1<<TXEN);            //Enable receiver and transmitter  
-	// Set frame format: 8data, 2stop bit 
-	UCSRC = (1<<URSEL)|(1<<USBS)|(3<<UCSZ0); 
-	
-}
 
-void uart_transmit(unsigned char data)
-{
-	while (!( UCSRA & (1<<UDRE)));
-	// UCSRA & (1<<UDRE) gives current value. UDRE = zero - indicates that buffer is empty 
-	UDR = data; //data is now in buffer
-}
 
 void SPI_SlaveInit(void)
 {
@@ -49,17 +34,19 @@ void SPI_MasterTransmit(unsigned char cData)
 	;
 }
 
+
 int main(){
-	uart_init ();
 	SPI_SlaveInit();
     unsigned char a;
-	
 	while(1){
-	a = SPI_SlaveReceive();
-		uart_transmit(a);
+		
+		a=SPI_SlaveReceive();
 		if(a=='a'){
 		SPI_MasterTransmit('b');
-		
-		uart_transmit('b');}
+		}
+		else {
+			SPI_MasterTransmit('d');
+		}
+	
 	}
 }
