@@ -58,15 +58,16 @@ unsigned char SPI_SlaveReceive(void)
 int main(){
 	uart_init ();
 	SPI_MasterInit();
-	unsigned char a;
+	unsigned char a,b;
 	while(1)
 {
-		SPI_MasterTransmit('a');
-		uart_transmit('a');
-		a = SPI_SlaveReceive();
-		uart_transmit('b');
+        b=uart_receive();
+		SPI_MasterTransmit(b);
+	a =	SPI_SlaveReceive();
+	
 		uart_transmit(a);
-		uart_transmit('c');
-		_delay_ms(500);
+
 	}
 }
+
+
